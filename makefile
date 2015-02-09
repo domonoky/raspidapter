@@ -27,8 +27,8 @@ all : test
 clean :
 	rm *.o test
 
-test : raspidapter_common.o test.o dice_stk.o dice_9555.o dice_vn.o
-	gcc -o test raspidapter_common.o dice_stk.o dice_9555.o dice_vn.o test.o -l bcm2835
+test : raspidapter_common.o test.o dice_stk.o dice_9555.o dice_vn.o dice_tmc.o
+	gcc -o test raspidapter_common.o dice_stk.o dice_9555.o dice_vn.o dice_tmc.o test.o -l bcm2835
 
 
 # The next lines generate the various object files
@@ -38,6 +38,8 @@ dice_stk.o : dice_stk.c dice_stk.h dice_common.h raspidapter_common.h
 dice_9555.o : dice_9555.c dice_9555.h dice_common.h raspidapter_common.h
 
 dice_vn.o : dice_vn.c dice_vn.h dice_common.h raspidapter_common.h
+
+dice_tmc.o : dice_tmc.c dice_tmc.h dice_common.h raspidapter_common.h
 
 raspidapter_common.o : raspidapter_common.c raspidapter_common.h 
 	gcc -c raspidapter_common.c -I /usr/include/

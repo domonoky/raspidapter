@@ -29,11 +29,13 @@
 #define DICE_STK 1
 #define DICE_9555 2
 #define DICE_VN 3
+#define DICE_TMC 4
 
 
 // ERROR codes
 // ERR_PARAM and ERR_INIT are define in the rapidapter_common header
 
+#define NUM_USER_VALUES 6
 
 //common information for all dices
 struct DICE 
@@ -50,6 +52,8 @@ struct DICE
    int slp;
 
    int i2c_addr;
+
+   unsigned long userValues[NUM_USER_VALUES];
 };
 
 #endif

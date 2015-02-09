@@ -50,5 +50,10 @@ int iochain_update();
 
 // function to access the i2C 
 int read_i2c(int address, char reg, int amount, char* data);
-
 int write_i2c(int address, char reg, int amount, char* data);
+
+//functions to access SPI
+unsigned char spi_transfer(unsigned char data);
+void spi_transfern(unsigned char* data,int len);
+void spi_transfernb(unsigned char* dataTx,unsigned char* dataRx,int len);
+

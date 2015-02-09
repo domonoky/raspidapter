@@ -292,6 +292,24 @@ int write_i2c(int address, char reg, int amount, char* data)
 }
 
 ////////////////////////////////////////////
+//  SPI routines
+////////////////////////////////////////////
+unsigned char spi_transfer(unsigned char data)
+{
+   return bcm2835_spi_transfer(data);
+}
+
+void spi_transfern(unsigned char* data,int len)
+{
+  bcm2835_spi_transfern(data,len);
+}
+
+void spi_transfernb(unsigned char* dataTx,unsigned char* dataRx,int len)
+{
+   bcm2835_spi_transfernb(dataTx,dataRx,len);
+}
+
+////////////////////////////////////////////
 //public main routines
 ////////////////////////////////////////////
 
@@ -311,6 +329,11 @@ int setup_raspidapter(int numboards)
 
    //setup i2c
     bcm2835_i2c_begin();
+
+   //setup Spi - but return cs signals to normal, as they are set via io_chain
+   bcm2835_spi_begin();
+   bcm2835_gpio_fsel(RPI_GPIO_P1_26, BCM2835_GPIO_FSEL_OUTP); // CE1
+   bcm2835_gpio_fsel(RPI_GPIO_P1_24, BCM2835_GPIO_FSEL_OUTP); // CE0
   
    //setup iochain
    int ret = setup_iochain(numboards);
@@ -326,6 +349,7 @@ int deinit_raspidapter()
 {
   deinit_iochain();
   bcm2835_i2c_end();
+  bcm2835_spi_end();
   bcm2835_close();
   return 0;
 }
