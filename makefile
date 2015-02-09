@@ -28,7 +28,7 @@ clean :
 	rm *.o test
 
 test : raspidapter_common.o test.o dice_stk.o dice_9555.o dice_vn.o
-	gcc -o test raspidapter_common.o dice_stk.o dice_9555.o dice_vn.o RaspberryPi-GPIO/library/librpigpio.a test.o
+	gcc -o test raspidapter_common.o dice_stk.o dice_9555.o dice_vn.o test.o -l bcm2835
 
 
 # The next lines generate the various object files
@@ -39,15 +39,9 @@ dice_9555.o : dice_9555.c dice_9555.h dice_common.h raspidapter_common.h
 
 dice_vn.o : dice_vn.c dice_vn.h dice_common.h raspidapter_common.h
 
-raspidapter_common.o : raspidapter_common.c raspidapter_common.h RaspberryPi-GPIO/include/rpiGpio.h 
-	gcc -c raspidapter_common.c 
+raspidapter_common.o : raspidapter_common.c raspidapter_common.h 
+	gcc -c raspidapter_common.c -I /usr/include/
 
 test.o : test.c raspidapter_common.h
 	gcc -c test.c
-
-gb_spi.o : gb_spi.c raspidapter_common.h gb_spi.h
-	gcc -c gb_spi.c
-
-gb_pwm.o : gb_pwm.c raspidapter_common.h gb_pwm.h
-	gcc -c gb_pwm.c
 

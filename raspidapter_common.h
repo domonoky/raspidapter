@@ -27,6 +27,7 @@
 // Error codes
 #define ERR_PARAM -1
 #define ERR_INIT -2
+#define ERR_I2C -3
 
 // main setup routine
 // param: number of connected boards

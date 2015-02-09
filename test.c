@@ -54,7 +54,7 @@ void long_wait(int v)
 //
 int main(void)
 { 
-  unsigned char pinstate;
+  unsigned int pinstate;
 
   printf ("Test Program:\n");
   printf ("When ready hit enter.\n");
@@ -85,21 +85,21 @@ int main(void)
   }
 
   // init DICE_9555
-/*  if(dice_9555_setup(&dice_9555,1,2,1) !=0)
+  if(dice_9555_setup(&dice_9555,1,2,1) !=0)
   {
     printf("dice_9555_setup failed");
     return -1;
   }
   //set pins to output
-  int pinstate = 0xff;
+  pinstate = 0xff;
   if(dice_9555_setoutput(&dice_9555,pinstate) !=0)
   {
     printf("dice_9555_setoutput failed");
     return -1;
   }
-*/
+
   // init DICE_VN in port 3
-  if(dice_vn_setup(&dice_vn,1,2,2) !=0)
+  if(dice_vn_setup(&dice_vn,1,3,1) !=0)
   {
     printf("dice_vn_setup failed");
     return -1;
@@ -113,7 +113,7 @@ int main(void)
   }
 
   // do something
-  unsigned char dice_vn_pins = 0xff;
+  unsigned char dice_vn_pins = 1;
   unsigned short dice_9555_pins = 1;
 
   int loopcounter =0;
@@ -138,7 +138,8 @@ int main(void)
     dice_vn_pins  = dice_vn_pins <<1;
     if(dice_vn_pins == 0) dice_vn_pins =1;
    }
-  /*
+
+ 
     //change dice_9555 outputs
     if(dice_9555_set(&dice_9555,dice_9555_pins) != 0)
     {
@@ -147,9 +148,11 @@ int main(void)
     }
 
     //shift 9555 output
-    dice_9555_pins = dice_9555_pins <<1;
-    if(dice_9555_pins == 0) dice_9555_pins =1;
-   */
+   if((loopcounter %1000) ==0)
+   {
+     dice_9555_pins = dice_9555_pins <<1;
+     if(dice_9555_pins == 0) dice_9555_pins =1;
+   }
 
 
    loopcounter++;

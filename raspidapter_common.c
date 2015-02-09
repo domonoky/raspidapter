@@ -25,7 +25,7 @@
 //
 
 
-#include "RaspberryPi-GPIO/include/rpiGpio.h"
+#include "bcm2835.h"
 #include "raspidapter_common.h"
 
 
@@ -46,15 +46,13 @@
 int num_chained_io =0;
 char* chained_io_buffer =0; 
 
-#define CHAINED_IO_ENABLE 22
-#define CHAINED_IO_DATA 18
-#define CHAINED_IO_CLOCK 27
-#define CHAINED_IO_STROBE 17 
+#define CHAINED_IO_ENABLE RPI_GPIO_P1_15
+#define CHAINED_IO_DATA RPI_GPIO_P1_12
+#define CHAINED_IO_CLOCK RPI_GPIO_P1_13
+#define CHAINED_IO_STROBE RPI_GPIO_P1_11 
 
 // marker for init
 int g_initialised =0; 
-
-
 
 //
 // This is a software loop to wait
@@ -119,13 +117,13 @@ int setup_iochain(int numboards)
       exit (-1);
    }
 
-   gpioSetFunction(CHAINED_IO_ENABLE,output);
-   gpioSetFunction(CHAINED_IO_DATA,output);
-   gpioSetFunction(CHAINED_IO_CLOCK,output);
-   gpioSetFunction(CHAINED_IO_STROBE,output);
- 
+   bcm2835_gpio_fsel(CHAINED_IO_ENABLE,BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(CHAINED_IO_DATA,BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(CHAINED_IO_CLOCK,BCM2835_GPIO_FSEL_OUTP);
+   bcm2835_gpio_fsel(CHAINED_IO_STROBE,BCM2835_GPIO_FSEL_OUTP);
+
    //enable output stage
-   gpioSetPin(CHAINED_IO_ENABLE,high);
+   bcm2835_gpio_set(CHAINED_IO_ENABLE);
    return 0;
 
 }
@@ -209,23 +207,24 @@ int iochain_update()
        //set output if there is a one  
        if(chained_io_buffer[bytenum] & (1<<bitnum))
        {
-         gpioSetPin(CHAINED_IO_DATA,high);       }
+	  bcm2835_gpio_set(CHAINED_IO_DATA); 
+       }
        high_wait_half();
        //clock
-       gpioSetPin(CHAINED_IO_CLOCK,high);
+       bcm2835_gpio_set(CHAINED_IO_CLOCK); 
        high_wait_half();
-       gpioSetPin(CHAINED_IO_CLOCK,low);
+       bcm2835_gpio_clr(CHAINED_IO_CLOCK); 
        
        //set data to zero
-       gpioSetPin(CHAINED_IO_DATA,low);
+       bcm2835_gpio_clr(CHAINED_IO_DATA); 
        low_wait();
    }
 
    //toggle strobe
-   gpioSetPin(CHAINED_IO_STROBE,high);
+   bcm2835_gpio_set(CHAINED_IO_STROBE);
    high_wait();
-   gpioSetPin(CHAINED_IO_STROBE,low);
-
+   bcm2835_gpio_clr(CHAINED_IO_STROBE);
+   
    return 0;
 }
 
@@ -241,23 +240,25 @@ int read_i2c(int address, char reg, int amount, char* data)
    int err;
    //error checking
    // TODO
-   err =gpioI2cSetClock(100000);
-   if(err!= 0)
-     printf(gpioErrToString(err));
+
+   //set clock ?
+
    //set address
-   err =gpioI2cSet7BitSlave(address);
-   if(err!= 0)
-     printf(gpioErrToString(err));
+   bcm2835_i2c_setSlaveAddress(address);    
 
-   err = gpioI2cWriteData(&reg,1);
-   if(err!= 0)
-     printf(gpioErrToString(err));
-
+   err = bcm2835_i2c_write(&reg,1);
+   if(err!= BCM2835_I2C_REASON_OK)
+   {
+     printf("Error sending i2c register\n");
+     return ERR_I2C;
+   }
    //read data
-   err= gpioI2cReadData(data,amount);
-   if(err!= 0)
-     printf(gpioErrToString(err));
-
+   err= bcm2835_i2c_read(data,amount);
+   if(err!= BCM2835_I2C_REASON_OK)
+   {
+     printf("Error reading i2c data\n");
+     return ERR_I2C;
+   }
    return 0;
 }
 
@@ -274,19 +275,19 @@ int write_i2c(int address, char reg, int amount, char* data)
    //copy data
    memcpy(&txbuf[1],data,amount);
 
-   err = gpioI2cSetClock(100000);
-   if(err!= 0)
-     printf(gpioErrToString(err));
+   //set clock ?
+
    //set address
-   err = gpioI2cSet7BitSlave(address);
-   if(err!= 0)
-     printf(gpioErrToString(err));
+   bcm2835_i2c_setSlaveAddress(address);   
 
    //send data
-   err = gpioI2cWriteData(txbuf,amount+1);
-   if(err!= 0)
-     printf(gpioErrToString(err));
-
+   err = bcm2835_i2c_write(txbuf,amount+1);
+   if(err!= BCM2835_I2C_REASON_OK)
+   {
+     printf("Error sending i2c register\n");
+     return ERR_I2C;
+   }
+   
    return 0;
 }
 
@@ -305,15 +306,16 @@ int setup_raspidapter(int numboards)
 	return ERR_INIT;
 
    //setup IO access
-   gpioSetup();
+   if(!bcm2835_init())
+	return -1;
+
+   //setup i2c
+    bcm2835_i2c_begin();
   
    //setup iochain
    int ret = setup_iochain(numboards);
    if(ret != 0)
 	return ret;
-
-   //set up i2c
-   gpioI2cSetup();
 
    g_initialised = 1;
 
@@ -322,8 +324,8 @@ int setup_raspidapter(int numboards)
 
 int deinit_raspidapter()
 {
-  gpioI2cCleanup();
-  gpioCleanup();
   deinit_iochain();
+  bcm2835_i2c_end();
+  bcm2835_close();
   return 0;
 }

@@ -1,8 +1,0 @@
-# Binary files
-*.a
-*.o
-*.so
-*.exe
-
-gh-pages
-documentation/html
