@@ -40,9 +40,11 @@ int deinit_raspidapter();
 //functions to access the serial clocked IOs - normally only used by the DICE functions
 
 // set a bit in the IO chain
+// bit - the bit number (not a bitfield)
 int iochain_setbit(int bit);
 
 //clear a bit in the IO chain
+// bit - the bit number (not a bitfield)
 int iochain_clearbit(int bit);
 
 // update buffered IOs to the hardware - blocks whiel sending

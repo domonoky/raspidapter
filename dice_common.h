@@ -35,7 +35,7 @@
 // ERROR codes
 // ERR_PARAM and ERR_INIT are define in the rapidapter_common header
 
-#define NUM_USER_VALUES 6
+#define NUM_USER_VALUES 8
 
 //common information for all dices
 struct DICE 

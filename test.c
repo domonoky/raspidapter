@@ -37,6 +37,7 @@
 struct DICE dice_stk;
 struct DICE dice_9555;
 struct DICE dice_vn;
+struct DICE dice_tmc;
 
 //
 // Simple SW wait loop
@@ -63,9 +64,9 @@ int main(void)
   // Init raspidapter IOs
   setup_raspidapter(1);
   
-
+   printf("setup DICE STK\n");
   //init DICE-STK 0
-  if(dice_stk_setup(&dice_stk,1,1) !=0)
+ if(dice_stk_setup(&dice_stk,1,1) !=0)
   {
     printf("dice_stk_setup failed");
     return -1;
@@ -85,20 +86,23 @@ int main(void)
   }
 
   // init DICE_9555
-  if(dice_9555_setup(&dice_9555,1,2,1) !=0)
+  printf("setup DICE 9555\n");
+ if(dice_9555_setup(&dice_9555,1,2,1) !=0)
   {
     printf("dice_9555_setup failed");
     return -1;
   }
+
   //set pins to output
-  pinstate = 0xff;
+  pinstate = 0xffff;
   if(dice_9555_setoutput(&dice_9555,pinstate) !=0)
   {
     printf("dice_9555_setoutput failed");
     return -1;
   }
 
-  // init DICE_VN in port 3
+ // init DICE_VN in port 3
+  printf("setup DICE VN\n");
   if(dice_vn_setup(&dice_vn,1,3,1) !=0)
   {
     printf("dice_vn_setup failed");
@@ -110,7 +114,25 @@ int main(void)
   {
     printf("dice_vn_setoutput failed");
     return -1;
+  } 
+
+  // init dice TMC in slot 4
+   printf("setup DICE TMC\n");
+  if(dice_tmc_setup(&dice_tmc,1,4) !=0)
+  {
+    printf("dice_tm_setup failed");
+    return -1;
   }
+  //start the driver
+  dice_tmc_start(&dice_tmc);
+
+ printf("enable DICE TMC\n");
+  dice_tmc_setEnabled(&dice_tmc,0);
+
+/////////////////////////////////////
+   dice_tmc_getMotorPosition(&dice_tmc);
+   int test = dice_tmc_isOpenLoadA(&dice_tmc);
+   printf("dice tmc open load A check: %x\n",test);
 
   // do something
   unsigned char dice_vn_pins = 1;
@@ -119,6 +141,8 @@ int main(void)
   int loopcounter =0;
   while(1)
   {
+    dice_tmc_step(&dice_tmc);
+
     // step the stk motor
     if(dice_stk_step(&dice_stk) !=0)
     {

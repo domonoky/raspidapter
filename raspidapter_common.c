@@ -46,10 +46,10 @@
 int num_chained_io =0;
 char* chained_io_buffer =0; 
 
-#define CHAINED_IO_ENABLE RPI_GPIO_P1_15
-#define CHAINED_IO_DATA RPI_GPIO_P1_12
-#define CHAINED_IO_CLOCK RPI_GPIO_P1_13
-#define CHAINED_IO_STROBE RPI_GPIO_P1_11 
+#define CHAINED_IO_ENABLE RPI_V2_GPIO_P1_15
+#define CHAINED_IO_DATA RPI_V2_GPIO_P1_12
+#define CHAINED_IO_CLOCK RPI_V2_GPIO_P1_13
+#define CHAINED_IO_STROBE RPI_V2_GPIO_P1_11 
 
 // marker for init
 int g_initialised =0; 
@@ -123,7 +123,7 @@ int setup_iochain(int numboards)
    bcm2835_gpio_fsel(CHAINED_IO_STROBE,BCM2835_GPIO_FSEL_OUTP);
 
    //enable output stage
-   bcm2835_gpio_set(CHAINED_IO_ENABLE);
+   bcm2835_gpio_write(CHAINED_IO_ENABLE,HIGH);
    return 0;
 
 }
@@ -191,7 +191,7 @@ int iochain_clearbit(int bit)
 //
 int iochain_update()
 {
- 
+
    if(chained_io_buffer == 0)
    {
      return ERR_INIT;
@@ -207,23 +207,23 @@ int iochain_update()
        //set output if there is a one  
        if(chained_io_buffer[bytenum] & (1<<bitnum))
        {
-	  bcm2835_gpio_set(CHAINED_IO_DATA); 
+	  bcm2835_gpio_write(CHAINED_IO_DATA,HIGH); 
        }
        high_wait_half();
        //clock
-       bcm2835_gpio_set(CHAINED_IO_CLOCK); 
+       bcm2835_gpio_write(CHAINED_IO_CLOCK,HIGH); 
        high_wait_half();
-       bcm2835_gpio_clr(CHAINED_IO_CLOCK); 
+       bcm2835_gpio_write(CHAINED_IO_CLOCK,LOW); 
        
        //set data to zero
-       bcm2835_gpio_clr(CHAINED_IO_DATA); 
+       bcm2835_gpio_write(CHAINED_IO_DATA,LOW); 
        low_wait();
    }
 
    //toggle strobe
-   bcm2835_gpio_set(CHAINED_IO_STROBE);
+   bcm2835_gpio_write(CHAINED_IO_STROBE,HIGH);
    high_wait();
-   bcm2835_gpio_clr(CHAINED_IO_STROBE);
+   bcm2835_gpio_write(CHAINED_IO_STROBE,LOW);
    
    return 0;
 }
@@ -277,14 +277,14 @@ int write_i2c(int address, char reg, int amount, char* data)
 
    //set clock ?
 
+
    //set address
    bcm2835_i2c_setSlaveAddress(address);   
-
    //send data
    err = bcm2835_i2c_write(txbuf,amount+1);
    if(err!= BCM2835_I2C_REASON_OK)
    {
-     printf("Error sending i2c register\n");
+     printf("Error sending i2c data: %x\n",err);
      return ERR_I2C;
    }
    
@@ -296,16 +296,19 @@ int write_i2c(int address, char reg, int amount, char* data)
 ////////////////////////////////////////////
 unsigned char spi_transfer(unsigned char data)
 {
+   bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
    return bcm2835_spi_transfer(data);
 }
 
 void spi_transfern(unsigned char* data,int len)
 {
+  bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
   bcm2835_spi_transfern(data,len);
 }
 
 void spi_transfernb(unsigned char* dataTx,unsigned char* dataRx,int len)
 {
+   bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
    bcm2835_spi_transfernb(dataTx,dataRx,len);
 }
 
@@ -328,7 +331,7 @@ int setup_raspidapter(int numboards)
 	return -1;
 
    //setup i2c
-    bcm2835_i2c_begin();
+   bcm2835_i2c_begin();
 
    //setup Spi - but return cs signals to normal, as they are set via io_chain
    bcm2835_spi_begin();
@@ -341,7 +344,7 @@ int setup_raspidapter(int numboards)
 	return ret;
 
    g_initialised = 1;
-
+  
    return 0;
 }
 
