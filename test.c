@@ -32,12 +32,13 @@
 #include "dice_stk.h"
 #include "dice_9555.h"
 #include "dice_vn.h"
-
+#include "dice_tc.h"
 
 struct DICE dice_stk;
 struct DICE dice_9555;
 struct DICE dice_vn;
 struct DICE dice_tmc;
+struct DICE dice_tc;
 
 //
 // Simple SW wait loop
@@ -85,6 +86,15 @@ int main(void)
     return -1;
   }
 
+  printf("setup DICE TC\n");
+  if(dice_tc_setup(&dice_tc,1,2) !=0)
+  {
+    printf("dice_tc_setup failed");
+    return -1;
+  }
+  
+
+/*
   // init DICE_9555
   printf("setup DICE 9555\n");
  if(dice_9555_setup(&dice_9555,1,2,1) !=0)
@@ -100,6 +110,8 @@ int main(void)
     printf("dice_9555_setoutput failed");
     return -1;
   }
+*/
+
 
  // init DICE_VN in port 3
   printf("setup DICE VN\n");
@@ -133,7 +145,15 @@ int main(void)
   unsigned char dice_vn_pins = 1;
   unsigned short dice_9555_pins = 1;
 
-  int loopcounter =0;
+  // TEST DICE TC
+
+  printf("DICE TC Internal temp 1: %f \n",dice_tc_readInternalTemp(&dice_tc,1));
+  printf("DICE TC Internal temp 2: %f \n",dice_tc_readInternalTemp(&dice_tc,2)); 
+  printf("DICE TC Internal temp 3: %f \n",dice_tc_readInternalTemp(&dice_tc,3));
+  
+
+
+   int loopcounter =0;
   while(1)
   {
     dice_tmc_step(&dice_tmc);
@@ -158,7 +178,7 @@ int main(void)
     if(dice_vn_pins == 0) dice_vn_pins =1;
    }
 
- 
+ /*
     //change dice_9555 outputs
     if(dice_9555_set(&dice_9555,dice_9555_pins) != 0)
     {
@@ -172,7 +192,7 @@ int main(void)
      dice_9555_pins = dice_9555_pins <<1;
      if(dice_9555_pins == 0) dice_9555_pins =1;
    }
-
+*/
 
    loopcounter++;
   }
