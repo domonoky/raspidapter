@@ -63,7 +63,7 @@ int main(void)
 
   // Init raspidapter IOs
   setup_raspidapter(1);
-  
+ 
    printf("setup DICE STK\n");
   //init DICE-STK 0
  if(dice_stk_setup(&dice_stk,1,1) !=0)
@@ -126,13 +126,8 @@ int main(void)
   //start the driver
   dice_tmc_start(&dice_tmc);
 
- printf("enable DICE TMC\n");
-  dice_tmc_setEnabled(&dice_tmc,0);
-
-/////////////////////////////////////
-   dice_tmc_getMotorPosition(&dice_tmc);
-   int test = dice_tmc_isOpenLoadA(&dice_tmc);
-   printf("dice tmc open load A check: %x\n",test);
+ // printf("enable DICE TMC\n");
+  dice_tmc_setEnabled(&dice_tmc,1);
 
   // do something
   unsigned char dice_vn_pins = 1;

@@ -142,7 +142,6 @@ int dice_tmc_setup(struct DICE* dice,int board, int slot)
    iochain_setbit(dice->enable);
    iochain_update();
 
-
    return 0;
 }
 
@@ -177,8 +176,8 @@ int dice_tmc_step(struct DICE* dice)
 
 int dice_tmc_dir(struct DICE* dice,int dir)
 {
-   if(dir) iochain_setbit(dice->step);
-   else iochain_clearbit(dice->step);
+   if(dir) iochain_setbit(dice->dir);
+   else iochain_clearbit(dice->dir);
    iochain_update();
 }
 
@@ -716,21 +715,27 @@ int dice_tmc_getReadoutValue(struct DICE* dice) {
 
 void send262(struct DICE* dice,unsigned long datagram)
 {
-    unsigned long i_datagram;
-    
+    unsigned long i_datagram=0;
+    int i;
     //select the TMC driver
-    iochain_setbit(dice->enable);
+    iochain_clearbit(dice->enable);
     iochain_update();
-       
+
     //ensure that only valid bit are set (0-19)
     //datagram &=REGISTER_BIT_PATTERN;
 	
     //write/read the values
-    spi_transfernb((unsigned char*)&datagram,(unsigned char*)&i_datagram,4);
-
+    i_datagram = spi_transfer((datagram >> 16) & 0xff);
+    i_datagram <<= 8;
+    i_datagram |= spi_transfer((datagram >>  8) & 0xff);
+    i_datagram <<= 8;
+    i_datagram |= spi_transfer((datagram) & 0xff);
+    i_datagram >>= 4;
+     
     //deselect the TMC chip
-    iochain_clearbit(dice->enable);
+    iochain_setbit(dice->enable);
     iochain_update();
+
  
     //store the datagram as status result
     dice->userValues[DRIVER_STATUS_RESULT] = i_datagram;

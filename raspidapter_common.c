@@ -49,7 +49,7 @@ char* chained_io_buffer =0;
 #define CHAINED_IO_ENABLE RPI_V2_GPIO_P1_15
 #define CHAINED_IO_DATA RPI_V2_GPIO_P1_12
 #define CHAINED_IO_CLOCK RPI_V2_GPIO_P1_13
-#define CHAINED_IO_STROBE RPI_V2_GPIO_P1_11 
+#define CHAINED_IO_STROBE RPI_V2_GPIO_P1_11
 
 // marker for init
 int g_initialised =0; 
@@ -191,7 +191,7 @@ int iochain_clearbit(int bit)
 //
 int iochain_update()
 {
-
+   //printf("iochain: ");
    if(chained_io_buffer == 0)
    {
      return ERR_INIT;
@@ -208,10 +208,14 @@ int iochain_update()
        if(chained_io_buffer[bytenum] & (1<<bitnum))
        {
 	  bcm2835_gpio_write(CHAINED_IO_DATA,HIGH); 
-       }
+	 // printf("1");     
+       } //else printf("0");
        high_wait_half();
+       high_wait_half();
+       
        //clock
        bcm2835_gpio_write(CHAINED_IO_CLOCK,HIGH); 
+       high_wait_half();
        high_wait_half();
        bcm2835_gpio_write(CHAINED_IO_CLOCK,LOW); 
        
@@ -225,6 +229,7 @@ int iochain_update()
    high_wait();
    bcm2835_gpio_write(CHAINED_IO_STROBE,LOW);
    
+  // printf("\n");
    return 0;
 }
 
@@ -296,20 +301,32 @@ int write_i2c(int address, char reg, int amount, char* data)
 ////////////////////////////////////////////
 unsigned char spi_transfer(unsigned char data)
 {
-   bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
-   return bcm2835_spi_transfer(data);
+    bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
+    bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);    
+   bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_65536)	;
+
+   char ret = bcm2835_spi_transfer(data);
+
+   return ret;
 }
 
 void spi_transfern(unsigned char* data,int len)
 {
-  bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
+    bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
+    bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);    
+   bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_65536)	;	
   bcm2835_spi_transfern(data,len);
 }
 
 void spi_transfernb(unsigned char* dataTx,unsigned char* dataRx,int len)
 {
-   bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
+    bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
+	bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
+    bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);    
+   bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_65536)	;
    bcm2835_spi_transfernb(dataTx,dataRx,len);
+	
+
 }
 
 ////////////////////////////////////////////
